@@ -1,0 +1,70 @@
+databaseChangeLog:
+  - changeSet:
+      id: filling user table
+      author: vlad rein
+      changes:
+        - insert:
+            tableName: user_model
+            columns:
+              - column:
+                  name: id
+                  valueComputed: "gen_random_uuid()"
+              - column:
+                  name: username
+                  value: "admin"
+              - column:
+                  name: password
+                  value: "$2a$12$Y82ofFwbJR6fGYp/yiRQu.1/TRCBSNv8Z1aKq9RG4d0FitE1Y7TmG"
+              - column:
+                  name: is_deleted
+                  valueBoolean: false
+              - column:
+                  name: refresh_token
+                  value: null
+              - column:
+                  name: role
+                  value: 1
+
+        - insert:
+            tableName: user_model
+            columns:
+              - column:
+                  name: id
+                  valueComputed: "gen_random_uuid()"
+              - column:
+                  name: username
+                  value: "user1"
+              - column:
+                  name: password
+                  value: "$2a$12$l9nPkzxe1bvaRr5c126mMuwW/rvNokh0J6ui0430JdIMlidEE2L.W"
+              - column:
+                  name: is_deleted
+                  valueBoolean: false
+              - column:
+                  name: refresh_token
+                  value: null
+              - column:
+                  name: role
+                  value: 2
+
+        - insert:
+            tableName: user_model
+            columns:
+              - column:
+                  name: id
+                  valueComputed: "gen_random_uuid()"
+              - column:
+                  name: username
+                  value: "user2"
+              - column:
+                  name: password
+                  value: "$2a$12$2FjFEkEamBwVkI7S9y8Gcukc9zv3bcuMp/DevyXCutXId8nd4GvrG"
+              - column:
+                  name: is_deleted
+                  valueBoolean: false
+              - column:
+                  name: refresh_token
+                  value: null
+              - column:
+                  name: role
+                  value: 2

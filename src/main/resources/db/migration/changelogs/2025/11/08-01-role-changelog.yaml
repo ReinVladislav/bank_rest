@@ -1,0 +1,53 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-role-seq
+      author: vlad rein
+      changes:
+        - createSequence:
+            sequenceName:  role_sequence
+            startValue: 1
+            incrementBy: 1
+
+  - changeSet:
+      id: create-role-table
+      author: vlad rein
+      changes:
+        - createTable:
+            tableName: role
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+  - changeSet:
+      id: filling-role-table
+      author: vlad rein
+      changes:
+        - insert:
+            tableName: role
+            columns:
+              - column:
+                  name: id
+                  valueSequenceNext: role_sequence
+              - column:
+                  name: name
+                  value: "ROLE_ADMIN"
+
+        - insert:
+            tableName: role
+            columns:
+              - column:
+                  name: id
+                  valueSequenceNext: role_sequence
+              - column:
+                  name: name
+                  value: "ROLE_USER"

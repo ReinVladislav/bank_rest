@@ -1,0 +1,714 @@
+openapi: 3.1.0
+info:
+  title: Bank REST API
+  description: API для банковского приложения
+  version: 1.0.0
+servers:
+  - url: http://localhost:8081
+    description: Generated server url
+tags:
+  - name: User Management (Admin)
+    description: Управление пользователями и администраторами
+  - name: Authentication
+    description: "Регистрация, вход и работа с токенами"
+  - name: User Cards
+    description: Операции с картами пользователя
+  - name: Admin Cards
+    description: Операции с картами для администраторов
+paths:
+  /cards/transfer:
+    post:
+      tags:
+        - User Cards
+      summary: Перевод средств между картами пользователя
+      description: Позволяет перевести средства с одной карты на другую
+      operationId: transfer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferRequest"
+        required: true
+      responses:
+        "204":
+          description: Перевод выполнен успешно
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Регистрация нового пользователя
+      description: Создаёт нового пользователя и возвращает access/refresh токены
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreateRequest"
+        required: true
+      responses:
+        "200":
+          description: Пользователь успешно зарегистрирован
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Обновление access-токена
+      description: Выдаёт новый access-токен по refresh-токену
+      operationId: refresh
+      parameters:
+        - name: X-Refresh-Token
+          in: header
+          description: Refresh-токен
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Токен успешно обновлён
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Вход в систему
+      description: Возвращает пару токенов (access + refresh) при успешной аутентификации
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+        required: true
+      responses:
+        "200":
+          description: Аутентификация успешна
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /admin/users:
+    get:
+      tags:
+        - User Management (Admin)
+      summary: Получить список обычных пользователей
+      description: Возвращает список пользователей с ролью USER с пагинацией и фильтрацией
+        по имени
+      operationId: getAllUser
+      parameters:
+        - name: username
+          in: query
+          description: Фильтр по имени пользователя
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Номер страницы (min = 1)
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+        - name: size
+          in: query
+          description: Размер страницы (min = 1)
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+      responses:
+        "200":
+          description: Список пользователей
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+    post:
+      tags:
+        - User Management (Admin)
+      summary: Создать нового пользователя
+      description: Создаёт пользователя с ролью USER
+      operationId: createUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreateRequest"
+        required: true
+      responses:
+        "201":
+          description: Пользователь успешно создан
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+  /admin/users/admin:
+    post:
+      tags:
+        - User Management (Admin)
+      summary: Создать администратора
+      description: Создаёт нового пользователя с ролью ADMIN
+      operationId: createAdmin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreateRequest"
+        required: true
+      responses:
+        "201":
+          description: Администратор успешно создан
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+  /admin/cards:
+    get:
+      tags:
+        - Admin Cards
+      summary: Получить все карты
+      description: Возвращает список всех карт с возможностью фильтрации по запросу
+        на блокировку
+      operationId: getAll
+      parameters:
+        - name: haveBlockRequest
+          in: query
+          description: Фильтр по наличию запроса на блокировку (true/false)
+          required: false
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          description: Номер страницы (min = 1)
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+        - name: size
+          in: query
+          description: Размер страницы (min = 1)
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+      responses:
+        "200":
+          description: Список карт успешно получен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ListCardResponse"
+    post:
+      tags:
+        - Admin Cards
+      summary: Создать карту
+      description: Создаёт новую карту и привязывает к владельцу
+      operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCardRequest"
+        required: true
+      responses:
+        "200":
+          description: Карта успешно создана
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CardWithOwnerResponse"
+  /cards/{id}/deposit:
+    patch:
+      tags:
+        - User Cards
+      summary: Пополнение баланса карты
+      description: Позволяет пополнить баланс карты
+      operationId: deposit
+      parameters:
+        - name: id
+          in: path
+          description: UUID карты
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DepositRequest"
+        required: true
+      responses:
+        "200":
+          description: Баланс успешно пополнен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CardBalanceResponse"
+  /cards/{id}/block:
+    patch:
+      tags:
+        - User Cards
+      summary: Запрос на блокировку карты
+      description: Отправляет запрос на блокировку карты пользователя
+      operationId: blockCardRequest
+      parameters:
+        - name: id
+          in: path
+          description: UUID карты
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Карта успешно помечена как 'Запрошена блокировка'
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CardResponse"
+  /admin/users/{id}:
+    get:
+      tags:
+        - User Management (Admin)
+      summary: Получить информацию о пользователе по ID
+      description: Возвращает данные пользователя по UUID
+      operationId: getOne
+      parameters:
+        - name: id
+          in: path
+          description: UUID пользователя
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Успешный ответ
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+    delete:
+      tags:
+        - User Management (Admin)
+      summary: Удалить пользователя
+      description: Логическое или физическое удаление пользователя по UUID
+      operationId: delete
+      parameters:
+        - name: id
+          in: path
+          description: UUID пользователя
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Пользователь успешно удалён
+    patch:
+      tags:
+        - User Management (Admin)
+      summary: Обновить данные пользователя
+      description: Частично обновляет данные пользователя по UUID
+      operationId: update
+      parameters:
+        - name: id
+          in: path
+          description: UUID пользователя
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdateRequest"
+        required: true
+      responses:
+        "200":
+          description: Данные успешно обновлены
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+  /admin/cards/{id}/block:
+    patch:
+      tags:
+        - Admin Cards
+      summary: Заблокировать карту
+      description: Меняет статус карты на BLOCKED
+      operationId: block
+      parameters:
+        - name: id
+          in: path
+          description: UUID карты
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Карта успешно заблокирована
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CardWithOwnerResponse"
+  /admin/cards/{id}/activate:
+    patch:
+      tags:
+        - Admin Cards
+      summary: Активировать карту
+      description: Меняет статус карты на ACTIVE
+      operationId: activate
+      parameters:
+        - name: id
+          in: path
+          description: UUID карты
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Карта успешно активирована
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CardWithOwnerResponse"
+  /cards:
+    get:
+      tags:
+        - User Cards
+      summary: Получить список своих карт
+      description: Возвращает список карт текущего пользователя
+      operationId: getMyCards
+      parameters:
+        - name: page
+          in: query
+          description: Номер страницы (min = 1)
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+        - name: size
+          in: query
+          description: Размер страницы (min = 1)
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+      responses:
+        "200":
+          description: Список карт успешно получен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ListCardResponse"
+  /cards/{id}/number:
+    get:
+      tags:
+        - User Cards
+      summary: Показать номер карты
+      description: Возвращает номер карты без маски
+      operationId: showCardNumber
+      parameters:
+        - name: id
+          in: path
+          description: UUID карты
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Номер карты успешно получен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CardNumberResponse"
+  /cards/{id}/balance:
+    get:
+      tags:
+        - User Cards
+      summary: Проверка баланса карты
+      description: Возвращает текущий баланс указанной карты
+      operationId: checkBalance
+      parameters:
+        - name: id
+          in: path
+          description: UUID карты
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Баланс успешно получен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CardBalanceResponse"
+  /admin/users/admins:
+    get:
+      tags:
+        - User Management (Admin)
+      summary: Получить список администраторов
+      description: Возвращает список пользователей с ролью ADMIN с пагинацией и фильтрацией
+        по имени
+      operationId: getAllAdmin
+      parameters:
+        - name: username
+          in: query
+          description: Фильтр по имени администратора
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Номер страницы (min = 1)
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+        - name: size
+          in: query
+          description: Размер страницы (min = 1)
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+      responses:
+        "200":
+          description: Список администраторов
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+  /auth/logout:
+    delete:
+      tags:
+        - Authentication
+      summary: Выход из системы
+      description: Инвалидирует refresh-токен (logout)
+      operationId: logout
+      parameters:
+        - name: X-Refresh-Token
+          in: header
+          description: Refresh-токен
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Пользователь успешно разлогинен
+  /admin/cards/{id}:
+    delete:
+      tags:
+        - Admin Cards
+      summary: Удалить карту
+      description: Удаляет карту по UUID
+      operationId: delete_1
+      parameters:
+        - name: id
+          in: path
+          description: UUID карты
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Карта успешно удалена
+components:
+  schemas:
+    TransferRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+          maximum: 1000000.00
+          minimum: 1.00
+        debit_card_id:
+          type: string
+          format: uuid
+        credit_card_id:
+          type: string
+          format: uuid
+      required:
+        - amount
+        - credit_card_id
+        - debit_card_id
+    UserCreateRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          minLength: 1
+        repeat_password:
+          type: string
+          minLength: 1
+      required:
+        - password
+        - repeat_password
+        - username
+    AuthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+      required:
+        - access_token
+        - refresh_token
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          minLength: 1
+      required:
+        - password
+        - username
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+      required:
+        - id
+        - username
+    CreateCardRequest:
+      type: object
+      properties:
+        owner:
+          type: string
+          format: uuid
+      required:
+        - owner
+    CardWithOwnerResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - BLOCKED
+            - EXPIRED
+        owner:
+          $ref: "#/components/schemas/UserResponse"
+        masked_number:
+          type: string
+        block_requested:
+          type: boolean
+        expiration_date:
+          type: string
+          format: date-time
+      required:
+        - block_requested
+        - expiration_date
+        - id
+        - masked_number
+        - owner
+        - status
+    DepositRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+          maximum: 1000000.00
+          minimum: 1.00
+      required:
+        - amount
+    CardBalanceResponse:
+      type: object
+      properties:
+        balance:
+          type: number
+      required:
+        - balance
+    CardResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - BLOCKED
+            - EXPIRED
+        masked_number:
+          type: string
+        block_requested:
+          type: boolean
+        expiration_date:
+          type: string
+          format: date-time
+      required:
+        - block_requested
+        - expiration_date
+        - id
+        - masked_number
+        - status
+    UserUpdateRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+        password:
+          type: string
+        repeat_password:
+          type: string
+      required:
+        - username
+    ListCardResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CardResponse"
+        total:
+          type: integer
+          format: int64
+      required:
+        - items
+        - total
+    CardNumberResponse:
+      type: object
+      properties:
+        card_number:
+          type: string
+      required:
+        - card_number

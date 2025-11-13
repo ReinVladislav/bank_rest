@@ -1,0 +1,116 @@
+databaseChangeLog:
+  - changeSet:
+      id: filling card table
+      author: vlad rein
+      changes:
+        - insert:
+            tableName: card
+            columns:
+              - column:
+                  name: id
+                  valueComputed: "gen_random_uuid()"
+              - column:
+                  name: encrypt_number
+                  value: "ZUrZaOrzi8rAUjPSnoP+cTo0Dy3k8SQmwfhg41qKalE="
+              - column:
+                  name: owner
+                  valueComputed: "(SELECT id FROM user_model WHERE username='user1')::uuid"
+              - column:
+                  name: expiration_date
+                  valueComputed: "'2025-01-15 00:00:00+00'::timestamptz"
+              - column:
+                  name: balance
+                  valueNumeric: 1537
+              - column:
+                  name: status
+                  valueNumeric: 0
+              - column:
+                  name: is_deleted
+                  valueBoolean: false
+              - column:
+                  name: block_requested
+                  valueBoolean: false
+
+        - insert:
+            tableName: card
+            columns:
+              - column:
+                  name: id
+                  valueComputed: "gen_random_uuid()"
+              - column:
+                  name: encrypt_number
+                  value: "pMPbD9lwOCMAjBs/BnvrQjo0Dy3k8SQmwfhg41qKalE="
+              - column:
+                  name: owner
+                  valueComputed: "(SELECT id FROM user_model WHERE username='user1')::uuid"
+              - column:
+                  name: expiration_date
+                  valueComputed: "'2026-06-28 00:00:00+00'::timestamptz"
+              - column:
+                  name: balance
+                  valueNumeric: 0
+              - column:
+                  name: status
+                  valueNumeric: 0
+              - column:
+                  name: is_deleted
+                  valueBoolean: false
+              - column:
+                  name: block_requested
+                  valueBoolean: false
+
+        - insert:
+            tableName: card
+            columns:
+              - column:
+                  name: id
+                  valueComputed: "gen_random_uuid()"
+              - column:
+                  name: encrypt_number
+                  value: "B6Wqmy/RzZCAmuglBDFr9To0Dy3k8SQmwfhg41qKalE="
+              - column:
+                  name: owner
+                  valueComputed: "(SELECT id FROM user_model WHERE username='user2')::uuid"
+              - column:
+                  name: expiration_date
+                  valueComputed: "'2025-11-29 00:00:00+00'::timestamptz"
+              - column:
+                  name: balance
+                  valueNumeric: 10045
+              - column:
+                  name: status
+                  valueNumeric: 0
+              - column:
+                  name: is_deleted
+                  valueBoolean: false
+              - column:
+                  name: block_requested
+                  valueBoolean: false
+
+        - insert:
+            tableName: card
+            columns:
+              - column:
+                  name: id
+                  valueComputed: "gen_random_uuid()"
+              - column:
+                  name: encrypt_number
+                  value: "GKk7z6g2/Ohcs2sRqcedDjo0Dy3k8SQmwfhg41qKalE="
+              - column:
+                  name: owner
+                  valueComputed: "(SELECT id FROM user_model WHERE username='user2')::uuid"
+              - column:
+                  name: expiration_date
+                  valueComputed: "'2025-12-28 00:00:00+00'::timestamptz"
+              - column:
+                  name: balance
+                  valueNumeric: 345
+              - column:
+                  name: status
+                  valueNumeric: 0
+              - column:
+                  name: is_deleted
+                  valueBoolean: false
+              - column:
+                  name: block_requested
+                  valueBoolean: false
